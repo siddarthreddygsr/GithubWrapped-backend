@@ -1,6 +1,7 @@
 import requests
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from datetime import datetime
 import os
 
 app = FastAPI()
@@ -96,6 +97,9 @@ async def get_account_stats(username: str):
                 highest_contributions = day['contributionCount']
             contributions_dict[day['date']] = day['contributionCount']
 
+    date_object = datetime.strptime(highest_contributions_date, "%Y-%m-%d")
+
+    highest_contributions_date = date_object.strftime("%B %d")
     response_data['highest_contributions'] = highest_contributions
     response_data['highest_contributions_date'] = highest_contributions_date
 
