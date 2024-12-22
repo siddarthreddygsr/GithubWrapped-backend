@@ -121,7 +121,7 @@ async def get_account_stats(username: str):
     busiest_day_index = daily_contributions.index(max(daily_contributions))
     days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
     busiest_day = days[busiest_day_index]
-    response_data['commits_in_a_year'] = contributionCalendar['totalContributions']
+    response_data['total_contributions'] = contributionCalendar['totalContributions']
     response_data['busiest_day'] = busiest_day
 
     return response_data
