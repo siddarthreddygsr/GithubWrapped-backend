@@ -2,6 +2,7 @@ import requests
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
+from collections import defaultdict
 import os
 
 app = FastAPI()
@@ -89,9 +90,13 @@ async def get_account_stats(username: str):
     contributions_array = []
     highest_contributions_date = "NA"
     highest_contributions = 0
+    monthly_contributions = defaultdict(int)
     for week in weeks:
         contributions_array.append(week['contributionDays'])
         for day in week['contributionDays']:
+            date_object = datetime.strptime(day['date'], "%Y-%m-%d")
+            month_key = date_object.strftime("%B")
+            monthly_contributions[month_key] += day['contributionCount']
             if day['contributionCount'] > highest_contributions:
                 highest_contributions_date = day['date']
                 highest_contributions = day['contributionCount']
@@ -102,6 +107,9 @@ async def get_account_stats(username: str):
     highest_contributions_date = date_object.strftime("%B %d")
     response_data['highest_contributions'] = highest_contributions
     response_data['highest_contributions_date'] = highest_contributions_date
+    busiest_month = max(monthly_contributions, key=monthly_contributions.get)
+    response_data['busiest_month'] = busiest_month
+    response_data['busiest_month_contributions'] = monthly_contributions[busiest_month]
 
     longest_streak = 0
     current_streak = 0
