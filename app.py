@@ -18,31 +18,32 @@ app.add_middleware(
 
 GITHUB_GRAPHQL_URL = 'https://api.github.com/graphql'
 
-QUERY = '''
-query($userName:String!) {
-  user(login: $userName){
-    contributionsCollection(from: "2024-01-01T00:00:00Z", to: "2024-12-31T23:59:59Z") {
-      contributionCalendar {
-        totalContributions
-        weeks {
-          contributionDays {
-            contributionCount
-            date
-          }
-        }
-      }
-    }
-  }
-}
-'''
 
-
-def retrieve_contribution_data(username: str) -> dict:
+def retrieve_contribution_data(username: str, year: str) -> dict:
     token = os.environ.get('GITHUB_TOKEN')
+    QUERY = '''
+        query($userName:String!, $fromDate: DateTime!, $toDate: DateTime!) {
+            user(login: $userName){
+                contributionsCollection(from: $fromDate, to: $toDate) {
+                    contributionCalendar {
+                        totalContributions
+                        weeks {
+                            contributionDays {
+                                contributionCount
+                                date
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    '''
     payload = {
         'query': QUERY,
         'variables': {
-            'userName': username
+            'userName': username,
+            'fromDate': f"{year}-01-01T00:00:00Z",
+            'toDate': f"{year}-12-31T23:59:59Z"
         }
     }
     headers = {
@@ -68,7 +69,7 @@ async def get_contributions(username: str):
     if not username:
         return {"error": "Username is required"}
 
-    contribution_data = retrieve_contribution_data(username)
+    contribution_data = retrieve_contribution_data(username, "2024")
     contributionCalendar = contribution_data['data']['user']['contributionsCollection']['contributionCalendar']
     weeks = contributionCalendar['weeks']
     contributions_array = []
@@ -83,7 +84,7 @@ async def get_account_stats(username: str):
         return {"error": "Username is required"}
 
     response_data = {}
-    contribution_data = retrieve_contribution_data(username)
+    contribution_data = retrieve_contribution_data(username, "2024")
     contributionCalendar = contribution_data['data']['user']['contributionsCollection']['contributionCalendar']
     weeks = contributionCalendar['weeks']
     contributions_dict = {}
@@ -135,11 +136,11 @@ async def get_account_stats(username: str):
     busiest_day = days[busiest_day_index]
     response_data['total_contributions'] = contributionCalendar['totalContributions']
     response_data['busiest_day'] = busiest_day
-
+    old_contribution_data = retrieve_contribution_data(username, "2023")
+    old_contributions_count = old_contribution_data['data']['user']['contributionsCollection']['contributionCalendar']['totalContributions']
+    contri_difference = contributionCalendar['totalContributions'] - old_contributions_count
+    response_data['adjective'] = "more" if contri_difference > 0 else "less"
+    response_data['contribution_difference'] = abs(contri_difference)
+    contribution_percentage = abs((contributionCalendar['totalContributions'] - old_contributions_count) / old_contributions_count) * 100
+    response_data['contribution_percentage'] = round(contribution_percentage, 2)
     return response_data
-
-
-# commits_in_a_year = contributionCalendar['totalContributions']  # To be sent in API
-# longest streak
-# longest break
-# highest commits in a day
