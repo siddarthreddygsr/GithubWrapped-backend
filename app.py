@@ -69,7 +69,7 @@ async def get_contributions(username: str):
     if not username:
         return {"error": "Username is required"}
 
-    contribution_data = retrieve_contribution_data(username, "2024")
+    contribution_data = retrieve_contribution_data(username, "2025")
     contributionCalendar = contribution_data['data']['user']['contributionsCollection']['contributionCalendar']
     weeks = contributionCalendar['weeks']
     contributions_array = []
@@ -84,7 +84,7 @@ async def get_account_stats(username: str):
         return {"error": "Username is required"}
 
     response_data = {}
-    contribution_data = retrieve_contribution_data(username, "2024")
+    contribution_data = retrieve_contribution_data(username, "2025")
     contributionCalendar = contribution_data['data']['user']['contributionsCollection']['contributionCalendar']
     weeks = contributionCalendar['weeks']
     contributions_dict = {}
@@ -136,7 +136,7 @@ async def get_account_stats(username: str):
     busiest_day = days[busiest_day_index]
     response_data['total_contributions'] = contributionCalendar['totalContributions']
     response_data['busiest_day'] = busiest_day
-    old_contribution_data = retrieve_contribution_data(username, "2023")
+    old_contribution_data = retrieve_contribution_data(username, "2024")
     old_contributions_count = old_contribution_data['data']['user']['contributionsCollection']['contributionCalendar']['totalContributions']
     contri_difference = contributionCalendar['totalContributions'] - old_contributions_count
     response_data['adjective'] = "more" if contri_difference > 0 else "less"
